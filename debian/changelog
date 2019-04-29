@@ -1,8 +1,14 @@
-ivozprovider-rtpengine (2.9~6.2.1) UNRELEASED; urgency=medium
+ivozprovider-rtpengine (2.10~6.2.1) UNRELEASED; urgency=medium
+
+  * Version bump to 2.10.0
+
+ -- Irontec IvozProvider Team <ivozprovider@irontec.com>  Thu, 14 Mar 2019 18:14:43 +0100
+
+ivozprovider-rtpengine (2.9~6.2.1) stable; urgency=medium
 
   * Version bump to 2.9.0
 
- -- Irontec IvozProvider Team <ivozprovider@irontec.com>  Wed, 26 Dec 2018 11:10:15 +0100
+ -- Irontec IvozProvider Team <ivozprovider@irontec.com>  Thu, 14 Mar 2019 18:14:29 +0100
 
 ivozprovider-rtpengine (2.8~6.2.1) stable; urgency=medium
 
