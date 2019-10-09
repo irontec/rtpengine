@@ -29,7 +29,7 @@ Homepage: http://sipwise.com/
 
 Package: ivozprovider-rtpengine
 Architecture: any
-Pre-Depends: ${misc:Depends}, ${shlibs:Depends}, dkms (>= 1.95), linux-headers-4.9.0-9-all
+Pre-Depends: ${misc:Depends}, ${shlibs:Depends}, dkms (>= 1.95), linux-headers-amd64
 Conflicts: ngcp-mediaproxy-ng-daemon, ngcp-rtpengine-redis1, ivozprovider-rtpproxy
 Replaces: ngcp-mediaproxy-ng-daemon, ngcp-rtpengine-redis1
 Description: IVOZ Provider - Proxy for RTP and media streams used in NGCP, userspace part.
