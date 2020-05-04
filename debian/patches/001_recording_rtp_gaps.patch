@@ -1,0 +1,30 @@
+From 15693dc943b83156c4edbfc48fdffd4c1283a0f5 Mon Sep 17 00:00:00 2001
+From: Richard Fuchs <rfuchs@sipwise.com>
+Date: Fri, 1 Nov 2019 12:49:10 -0400
+Subject: [PATCH] TT#69700 handle gaps in RTP TS correctly for mix output
+
+fixes #861
+
+Change-Id: I89785734b0d3a3058c7579ce139d8111d9798f10
+(cherry picked from commit 1ec82768db0b38cf6621bbe156fa714b3dded64f)
+---
+ recording-daemon/mix.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/recording-daemon/mix.c b/recording-daemon/mix.c
+index dfb5af285..4b4627dad 100644
+--- a/recording-daemon/mix.c
++++ b/recording-daemon/mix.c
+@@ -245,6 +245,12 @@ int mix_add(mix_t *mix, AVFrame *frame, unsigned int idx, output_t *output) {
+ 	// fill missing time
+ 	mix_silence_fill_idx_upto(mix, idx, frame->pts);
+ 
++	// check for pts gap. this is the opposite of silence fill-in. if the frame
++	// pts is behind the expected input pts, there was a gap and we reset our
++	// pts adjustment
++	if (G_UNLIKELY(frame->pts < mix->in_pts[idx]))
++		mix->pts_offs[idx] += mix->in_pts[idx] - frame->pts;
++
+ 	uint64_t next_pts = frame->pts + frame->nb_samples;
+ 
+ 	err = "failed to add frame to mixer";
