@@ -27,7 +27,7 @@ Homepage: http://sipwise.com/
 
 Package: itsbc-rtpengine
 Architecture: any
-Pre-Depends: ${misc:Depends}, ${shlibs:Depends}, dkms (>= 1.95), linux-headers-4.9.0-4-all, linux-headers-4.9.0-3-all,
+Pre-Depends: ${misc:Depends}, ${shlibs:Depends}, dkms (>= 1.95), linux-headers-amd64
 Conflicts: ngcp-mediaproxy-ng-daemon, ngcp-rtpengine-redis1
 Replaces: ngcp-mediaproxy-ng-daemon, ngcp-rtpengine-redis1
 Description: Irontec Tiny SBC - Proxy for RTP and media streams used in NGCP, userspace part.
