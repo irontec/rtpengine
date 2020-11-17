@@ -1,2 +1,3 @@
 000_disable_recording_db.patch
 001_recording_rtp_gaps.patch
+002_recording_mixed_output_locking.patch
