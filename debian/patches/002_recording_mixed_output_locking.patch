@@ -1,0 +1,32 @@
+From 9dbfbe7852afa321ea12088a5fc84a50dcfd4350 Mon Sep 17 00:00:00 2001
+From: Richard Fuchs <rfuchs@sipwise.com>
+Date: Mon, 3 Sep 2018 06:01:23 -0400
+Subject: [PATCH] add missing lock for configuring mixed output decoder
+
+should fix #593
+
+Change-Id: Ibc63d72101eb4575bcab57b44e8a96cbc3bb5cb6
+(cherry picked from commit 828e2eea2c658caf6d1fae06279564055c417859)
+---
+ recording-daemon/packet.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/recording-daemon/packet.c b/recording-daemon/packet.c
+index 5c9baed3a..6c824e779 100644
+--- a/recording-daemon/packet.c
++++ b/recording-daemon/packet.c
+@@ -87,12 +87,14 @@ static void packet_decode(ssrc_t *ssrc, packet_t *packet) {
+ 
+ 		dbg("payload type for %u is %s", payload_type, payload_str);
+ 
++		pthread_mutex_lock(&mf->mix_lock);
+ 		output_t *outp = NULL;
+ 		if (mf->mix_out)
+ 			outp = mf->mix_out;
+ 		else if (ssrc->output)
+ 			outp = ssrc->output;
+ 		ssrc->decoders[payload_type] = decoder_new(payload_str, outp);
++		pthread_mutex_unlock(&mf->mix_lock);
+ 		if (!ssrc->decoders[payload_type]) {
+ 			ilog(LOG_WARN, "Cannot decode RTP payload type %u (%s)",
+ 					payload_type, payload_str);
