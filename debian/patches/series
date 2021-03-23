@@ -2,3 +2,4 @@
 001_recording_rtp_gaps.patch
 002_recording_mixed_output_locking.patch
 003_suppress_empty_rtpmap.patch
+004_fix_multi_ssrc_recordings.patch
