@@ -3,3 +3,4 @@
 002_recording_mixed_output_locking.patch
 003_suppress_empty_rtpmap.patch
 004_fix_multi_ssrc_recordings.patch
+005_fix_reuse_old_ssrc_mixer.patch

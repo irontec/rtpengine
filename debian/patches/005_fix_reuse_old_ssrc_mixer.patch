@@ -1,0 +1,55 @@
+diff --git a/recording-daemon/decoder.c b/recording-daemon/decoder.c
+index 568f5307..cc954a33 100644
+--- a/recording-daemon/decoder.c
++++ b/recording-daemon/decoder.c
+@@ -89,6 +89,8 @@ static int decoder_got_frame(decoder_t *dec, AVFrame *frame, void *sp, void *dp)
+ 	pthread_mutex_lock(&metafile->mix_lock);
+ 	if (metafile->mix_out) {
+ 		dbg("adding packet from stream #%lu to mix output", stream->id);
++		if (mix_input_check_index(metafile->mix, dec->mixer_idx, ssrc) != 0)
++			dec->mixer_idx = -1;
+ 		if (G_UNLIKELY(dec->mixer_idx == (unsigned int) -1))
+ 			dec->mixer_idx = mix_get_index(metafile->mix, ssrc);
+ 		format_t actual_format;
+diff --git a/recording-daemon/mix.c b/recording-daemon/mix.c
+index 2ebf06c1..eb08fe01 100644
+--- a/recording-daemon/mix.c
++++ b/recording-daemon/mix.c
+@@ -78,6 +78,25 @@ static void mix_input_reset(mix_t *mix, unsigned int idx) {
+ 	mix->input_ref[idx] = NULL;
+ }
+ 
++unsigned int mix_input_check_index(mix_t *mix, unsigned int idx, void *ptr) {
++	// Index not yet initialized
++	if (idx == -1)
++		return 0;
++
++	// index out of range
++	if (idx >= NUM_INPUTS)
++		return 1;
++
++	// mixer not initialized
++	if (!mix->src_ctxs[idx])
++		return 2;
++
++	// received samples for old re-used input channel
++	if (ptr != mix->input_ref[idx])
++		return 3;
++
++	return 0;
++}
+ 
+ unsigned int mix_get_index(mix_t *mix, void *ptr) {
+ 	unsigned int next = mix->next_idx++;
+diff --git a/recording-daemon/mix.h b/recording-daemon/mix.h
+index 98effbb4..98f3ba79 100644
+--- a/recording-daemon/mix.h
++++ b/recording-daemon/mix.h
+@@ -11,6 +11,7 @@ void mix_destroy(mix_t *mix);
+ int mix_config(mix_t *, const format_t *format);
+ int mix_add(mix_t *mix, AVFrame *frame, unsigned int idx, void *, output_t *output);
+ unsigned int mix_get_index(mix_t *, void *);
++unsigned int mix_input_check_index(mix_t *, unsigned int , void *);
+ 
+ 
+ #endif
