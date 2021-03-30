@@ -1,0 +1,182 @@
+diff --git a/README.md b/README.md
+index bf5e88a3..1115958d 100644
+--- a/README.md
++++ b/README.md
+@@ -214,7 +214,7 @@ option and which are reproduced below:
+ 	  --log-facility-rtcp=local0|...   Syslog facility to use for logging RTCP data (take care of traffic amount)
+ 	  --log-format=default|parsable    Log prefix format
+ 	  -E, --log-stderr                 Log on stderr instead of syslog
+-	  -x, --xmlrpc-format=INT          XMLRPC timeout request format to use. 0: SEMS DI, 1: call-id only
++	  -x, --xmlrpc-format=INT          XMLRPC timeout request format to use. 0: SEMS DI, 1: call-id only, 2: Kamailio
+ 	  --num-threads=INT                Number of worker threads to create
+ 	  -d, --delete-delay               Delay for deleting a session from memory.
+ 	  --sip-source                     Use SIP source address by default
+@@ -496,7 +496,7 @@ The options are described in more detail below.
+ * -x, --xmlrpc-format
+ 
+ 	Selects the internal format of the XMLRPC callback message for B2BUA call teardown. 0 is for SEMS,
+-	1 is for a generic format containing the call-ID only.
++	1 is for a generic format containing the call-ID only, 2 is for Kamailio.
+ 
+ * --max-sessions
+ 
+diff --git a/daemon/call.c b/daemon/call.c
+index d58c4b40..11e861c6 100644
+--- a/daemon/call.c
++++ b/daemon/call.c
+@@ -55,7 +55,7 @@ struct iterator_helper {
+ struct xmlrpc_helper {
+ 	enum xmlrpc_format fmt;
+ 	GStringChunk		*c;
+-	GSList			*tags_urls;
++	GQueue			strings;
+ };
+ 
+ const struct transport_protocol transport_protocols[] = {
+@@ -299,12 +299,22 @@ void xmlrpc_kill_calls(void *p) {
+ 	sigset_t ss;
+ 	int i = 0;
+ 	int status;
+-	str *tag;
++	str *tag, *tag2 = NULL, *tag3 = NULL;
+ 	const char *url;
+ 
+-	while (xh->tags_urls && xh->tags_urls->next) {
+-		tag = xh->tags_urls->data;
+-		url = xh->tags_urls->next->data;
++	int els_per_ent = 2;
++	if (xh->fmt == XF_KAMAILIO)
++		els_per_ent = 4;
++
++	while (xh->strings.length >= els_per_ent) {
++		usleep(10000);
++
++		url = xh->strings.head->data;
++		tag = xh->strings.head->next->data;
++		if (xh->fmt == XF_KAMAILIO) {
++			tag2 = xh->strings.head->next->next->data;
++			tag3 = xh->strings.head->next->next->next->data;
++		}
+ 
+ 		ilog(LOG_INFO, "Forking child to close call with tag "STR_FORMAT" via XMLRPC call to %s",
+ 				STR_FMT(tag), url);
+@@ -314,8 +324,8 @@ void xmlrpc_kill_calls(void *p) {
+ retry:
+ 			pid = waitpid(pid, &status, 0);
+ 			if ((pid > 0 && WIFEXITED(status) && WEXITSTATUS(status) == 0) || i >= 3) {
+-				xh->tags_urls = g_slist_delete_link(xh->tags_urls, xh->tags_urls);
+-				xh->tags_urls = g_slist_delete_link(xh->tags_urls, xh->tags_urls);
++				for (int i = 0; i < els_per_ent; i++)
++					g_queue_pop_head(&xh->strings);
+ 				i = 0;
+ 			}
+ 			else {
+@@ -361,6 +371,10 @@ retry:
+ 		case XF_CALLID:
+ 			xmlrpc_client_call2f(&e, c, url, "teardown", &r, "(s)", tag->s);
+ 			break;
++		case XF_KAMAILIO:
++			xmlrpc_client_call2f(&e, c, url, "dlg.terminate_dlg", &r, "(sss)",
++					tag->s, tag2->s, tag3->s);
++			break;
+ 		}
+ 
+ 		if (r)
+@@ -369,8 +383,8 @@ retry:
+ 			goto fault;
+ 
+ 		xmlrpc_client_destroy(c);
+-		xh->tags_urls = g_slist_delete_link(xh->tags_urls, xh->tags_urls);
+-		xh->tags_urls = g_slist_delete_link(xh->tags_urls, xh->tags_urls);
++		for (int i = 0; i < els_per_ent; i++)
++			g_queue_pop_head(&xh->strings);
+ 		xmlrpc_env_clean(&e);
+ 
+ 		_exit(0);
+@@ -387,7 +401,7 @@ fault:
+ void kill_calls_timer(GSList *list, const char *url) {
+ 	struct call *ca;
+ 	GList *csl;
+-	struct call_monologue *cm;
++	struct call_monologue *cm, *cd;
+ 	const char *url_prefix, *url_suffix;
+ 	struct xmlrpc_helper *xh = NULL;
+ 	char url_buf[128];
+@@ -407,7 +421,7 @@ void kill_calls_timer(GSList *list, const char *url) {
+ 		}
+ 		else
+ 			url_suffix = g_string_chunk_insert(xh->c, url);
+-		xh->tags_urls = NULL;
++		g_queue_init(&xh->strings);
+ 		xh->fmt = rtpe_config.fmt;
+ 	}
+ 
+@@ -432,14 +446,30 @@ void kill_calls_timer(GSList *list, const char *url) {
+ 			for (csl = ca->monologues.head; csl; csl = csl->next) {
+ 				cm = csl->data;
+ 				if (cm->tag.s && cm->tag.len) {
+-					xh->tags_urls = g_slist_prepend(xh->tags_urls, g_string_chunk_insert(xh->c, url_buf));
+-					xh->tags_urls = g_slist_prepend(xh->tags_urls, str_chunk_insert(xh->c, &cm->tag));
++					g_queue_push_tail(&xh->strings, g_string_chunk_insert(xh->c, url_buf));
++					g_queue_push_tail(&xh->strings, str_chunk_insert(xh->c, &cm->tag));
+ 				}
+ 			}
+ 			break;
+ 		case XF_CALLID:
+-			xh->tags_urls = g_slist_prepend(xh->tags_urls, g_string_chunk_insert(xh->c, url_buf));
+-			xh->tags_urls = g_slist_prepend(xh->tags_urls, str_chunk_insert(xh->c, &ca->callid));
++			g_queue_push_tail(&xh->strings, g_string_chunk_insert(xh->c, url_buf));
++			g_queue_push_tail(&xh->strings, str_chunk_insert(xh->c, &ca->callid));
++			break;
++		case XF_KAMAILIO:
++			for (csl = ca->monologues.head; csl; csl = csl->next) {
++				cm = csl->data;
++				cd = cm->active_dialogue;
++				if (cm->tag.s && cm->tag.len && cd && cd->tag.s && cd->tag.len) {
++					g_queue_push_tail(&xh->strings,
++							g_string_chunk_insert(xh->c, url_buf));
++					g_queue_push_tail(&xh->strings,
++							str_chunk_insert(xh->c, &ca->callid));
++					g_queue_push_tail(&xh->strings,
++							str_chunk_insert(xh->c, &cm->tag));
++					g_queue_push_tail(&xh->strings,
++							str_chunk_insert(xh->c, &cd->tag));
++				}
++			}
+ 			break;
+ 		}
+ 
+diff --git a/daemon/main.c b/daemon/main.c
+index 94ba33b4..a0726860 100644
+--- a/daemon/main.c
++++ b/daemon/main.c
+@@ -278,7 +278,7 @@ static void options(int *argc, char ***argv) {
+ 		{ "log-facility-cdr",0,  0, G_OPTION_ARG_STRING, &log_facility_cdr_s, "Syslog facility to use for logging CDRs", "daemon|local0|...|local7"},
+ 		{ "log-facility-rtcp",0,  0, G_OPTION_ARG_STRING, &log_facility_rtcp_s, "Syslog facility to use for logging RTCP", "daemon|local0|...|local7"},
+ 		{ "log-format",	0, 0,	G_OPTION_ARG_STRING,	&log_format,	"Log prefix format",		"default|parsable"},
+-		{ "xmlrpc-format",'x', 0, G_OPTION_ARG_INT,	&rtpe_config.fmt,	"XMLRPC timeout request format to use. 0: SEMS DI, 1: call-id only",	"INT"	},
++		{ "xmlrpc-format",'x', 0, G_OPTION_ARG_INT,	&rtpe_config.fmt,	"XMLRPC timeout request format to use. 0: SEMS DI, 1: call-id only, 2: Kamailio",	"INT"	},
+ 		{ "num-threads",  0, 0, G_OPTION_ARG_INT,	&rtpe_config.num_threads,	"Number of worker threads to create",	"INT"	},
+ 		{ "delete-delay",  'd', 0, G_OPTION_ARG_INT,    &rtpe_config.delete_delay,  "Delay for deleting a session from memory.",    "INT"   },
+ 		{ "sip-source",  0,  0, G_OPTION_ARG_NONE,	&sip_source,	"Use SIP source address by default",	NULL	},
+@@ -395,7 +395,7 @@ static void options(int *argc, char ***argv) {
+ 					"RTPENGINE_REDIS_WRITE_AUTH_PW", redisps_write))
+ 			die("Invalid Redis endpoint [IP:PORT/INT] (--redis-write)");
+ 
+-	if (rtpe_config.fmt > 1)
++	if (rtpe_config.fmt > 2)
+ 		die("Invalid XMLRPC format");
+ 
+ 	if (log_facility_cdr_s) {
+diff --git a/daemon/main.h b/daemon/main.h
+index 50e2f3c8..5b5a45f1 100644
+--- a/daemon/main.h
++++ b/daemon/main.h
+@@ -10,6 +10,7 @@
+ enum xmlrpc_format {
+ 	XF_SEMS = 0,
+ 	XF_CALLID,
++	XF_KAMAILIO,
+ };
+ enum log_format {
+ 	LF_DEFAULT = 0,
