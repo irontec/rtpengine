@@ -5,3 +5,4 @@
 004_fix_multi_ssrc_recordings.patch
 005_fix_reuse_old_ssrc_mixer.patch
 006_dlg_terminate_xmlrpc_kamailio.patch
+007_fix_transcode_common_segfaults.patch
