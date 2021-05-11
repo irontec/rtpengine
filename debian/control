@@ -113,6 +113,7 @@ Suggests:
  ngcp-system-tools,
 Depends:
  dkms (>= 1.95),
+ linux-headers-amd64,
  lsb-release,
  ${misc:Depends},
 Description: IPtables kernel module for the NGCP media proxy - DKMS
