@@ -1,137 +1,49 @@
-Source: ngcp-rtpengine
+Source: ivozprovider-rtpengine
 Section: net
-Priority: optional
-Maintainer: Sipwise Development Team <support@sipwise.com>
-Homepage: https://www.sipwise.com/
-Standards-Version: 3.9.8
-Build-Depends:
- debhelper-compat (= 12),
- default-libmysqlclient-dev,
- gperf,
- libavcodec-dev (>= 6:10),
- libavfilter-dev (>= 6:10),
- libavformat-dev (>= 6:10),
- libavutil-dev (>= 6:10),
- libbcg729-dev <!pkg.ngcp-rtpengine.nobcg729>,
- libbencode-perl,
- libcrypt-openssl-rsa-perl,
- libcrypt-rijndael-perl,
- libcurl4-openssl-dev | libcurl4-gnutls-dev,
- libdigest-crc-perl,
- libdigest-hmac-perl,
- libevent-dev (>= 2.0),
- libglib2.0-dev (>= 2.30),
- libhiredis-dev,
- libio-multiplex-perl,
- libio-socket-inet6-perl,
- libio-socket-ip-perl,
- libiptc-dev,
- libjson-glib-dev,
- libnet-interface-perl,
- libpcap0.8-dev,
- libpcre3-dev,
- libsocket6-perl,
- libspandsp-dev,
- libssl-dev (>= 1.0.1),
- libswresample-dev (>= 6:10),
- libsystemd-dev,
- libwebsockets-dev,
- libxmlrpc-core-c3-dev (>= 1.16.07),
- libxtables-dev (>= 1.4) | iptables-dev (>= 1.4),
- markdown,
- zlib1g-dev,
+Priority: extra
+Maintainer: Irontec IvozProvider Team <ivozprovider@irontec.com>
+Build-Depends: debhelper (>= 5),
+               quilt,
+               dh-systemd,
+               dh-exec,
+               gperf,
+               iptables-dev (>= 1.4),
+               libcurl4-openssl-dev | libcurl4-gnutls-dev | libcurl3-openssl-dev | libcurl3-gnutls-dev,
+               libevent-dev (>= 2.0),
+               libglib2.0-dev (>= 2.30),
+               libhiredis-dev,
+               libpcap-dev,
+               libjson-glib-dev,
+               libpcre3-dev,
+               libmysqlclient-dev,
+               libavutil-dev,
+               libavresample-dev,
+               libavformat-dev,
+               libavfilter-dev,
+               libspandsp-dev,
+               libssl-dev (>= 1.0.1),
+               libxmlrpc-core-c3-dev,
+               libxtables-dev,
+               libwebsockets-dev,
+               libbcg729-dev,
+               markdown,
+               zlib1g-dev
+Standards-Version: 3.9.7
+Homepage: http://sipwise.com/
 
-Package: ngcp-rtpengine-daemon
+Package: ivozprovider-rtpengine
 Architecture: any
-Recommends:
- ngcp-rtpengine-recording-daemon,
- ngcp-rtpengine-utils,
-Suggests:
- ngcp-system-tools,
-Depends:
- lsb-base (>= 3.0-6),
- ${misc:Depends},
- ${shlibs:Depends},
-Description: proxy for RTP and media streams used in NGCP, userspace part
+Pre-Depends: ${misc:Depends}, ${shlibs:Depends}, dkms (>= 1.95), linux-headers-amd64
+Conflicts: ngcp-mediaproxy-ng-daemon, ngcp-rtpengine-redis1, ivozprovider-rtpproxy
+Replaces: ngcp-mediaproxy-ng-daemon, ngcp-rtpengine-redis1
+Description: IVOZ Provider - Proxy for RTP and media streams used in NGCP, userspace part.
  This daemon handles the first stages of proxying media streams and talks to
  the kernel part of the proxy for eventual high-performance packet forwarding.
+ .
+ This package is based on templates from Sipwise ngcp-rtpengine, merging all the
+ packages into a single one and adding systemd unit files. 
+ .
+ Default configuration is designed to work with the rest of the components of
+ ivozprovider.
+ .
 
-Package: ngcp-rtpengine-recording-daemon
-Architecture: any
-Build-Profiles: <!pkg.ngcp-rtpengine.no-transcoding>
-Recommends:
- ngcp-rtpengine-utils,
-Suggests:
- ngcp-system-tools,
-Depends:
- lsb-base (>= 3.0-6),
- nfs-common,
- ${misc:Depends},
- ${shlibs:Depends},
-Description: recording daemon for RTP and media streams
- This daemon handles the call recording (media intercept) component of rtpengine.
-
-Package: ngcp-rtpengine-iptables
-Architecture: any
-Depends:
- ${misc:Depends},
- ${shlibs:Depends},
-Description: IPtables extension module for the kernel-space NGCP media proxy
- Provides the IPtables extension needed to configure the mediaproxy rule.
-
-Package: ngcp-rtpengine
-Architecture: all
-Depends:
- ngcp-rtpengine-daemon (>= ${source:Version}),
- ngcp-rtpengine-iptables (>= ${source:Version}),
- ngcp-rtpengine-kernel-dkms (>= ${source:Version}),
- ngcp-rtpengine-recording-daemon (>= ${source:Version}),
- ngcp-rtpengine-utils (>= ${source:Version}),
- ${misc:Depends},
-Description: NGCP RTP/media proxy - meta package
- This is a meta package for easy installation of all four parts of the NGCP
- media proxy. It will install the user-space daemon, the kernel-space IPtables
- module, the IPtables extension module and utility scripts.
-
-Package: ngcp-rtpengine-kernel-source
-Architecture: all
-Section: kernel
-Depends:
- debhelper-compat (= 12),
- module-assistant,
- ${misc:Depends},
-Description: IPtables kernel module for the NGCP media proxy - source
- Provides the kernel-space part of the NGCP media proxy for high-
- performance packet forwarding.
- This package contains the source to be built with module-assistant or
- kernel-package.
-
-Package: ngcp-rtpengine-kernel-dkms
-Architecture: all
-Section: kernel
-Suggests:
- ngcp-system-tools,
-Depends:
- dkms (>= 1.95),
- lsb-release,
- ${misc:Depends},
-Description: IPtables kernel module for the NGCP media proxy - DKMS
- Provides the kernel-space part of the NGCP media proxy for high-
- performance packet forwarding.
- This package contains the source to be built with dkms.
-
-Package: ngcp-rtpengine-utils
-Architecture: all
-Depends:
- libbencode-perl,
- libconfig-tiny-perl,
- libcrypt-rijndael-perl,
- libdigest-hmac-perl,
- libio-socket-inet6-perl,
- libio-socket-ip-perl,
- libsocket6-perl,
- netcat-openbsd | netcat,
- ${misc:Depends},
- ${perl:Depends},
-Description: scripts and Perl modules for NGCP rtpengine
- This package contains scripts and Perl modules for NGCP rtpengine

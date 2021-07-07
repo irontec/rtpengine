@@ -1,0 +1,26 @@
+#!/bin/bash
+
+package=rtpengine
+name=rtpengine
+version="9.5.1"
+arch=`dpkg --print-architecture`
+kernel=`uname -r`
+
+isadded=`dkms status -m "$name" -v "$version" -k "$kernel"`
+
+if [ "x${isadded}" = "x" ] ; then
+	dkms add -m "$name" -v "$version" -k "$kernel"
+fi
+
+if [ "$1" = 'configure' ] ; then
+	dkms build -m "$name" -v "$version" -k "$kernel" && dkms install -m "$name" -v "$version" -k "$kernel" || true
+fi
+
+grep xt_RTPENGINE /etc/modules &>/dev/null
+if [ $? -ne 0 ]; then
+    echo xt_RTPENGINE >> /etc/modules
+fi
+
+#DEBHELPER#
+
+:

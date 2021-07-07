@@ -1,0 +1,13 @@
+[Unit]
+Description=RTPEngine Recording daemon
+After=network.target
+
+[Service]
+Type=simple
+EnvironmentFile=/etc/default/rtpengine-recording
+PIDFile=/var/run/rtpengine-recording.pid
+ExecStart=/usr/sbin/rtpengine-recording -f -E --pidfile /var/run/rtpengine-recording.pid --spool-dir=${RECORDINGS_SPOOL} --output-dir=${RECORDINGS_DIR} --output-mixed ${EXTRA_OPTS}
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
