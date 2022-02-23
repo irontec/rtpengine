@@ -6,7 +6,7 @@ After=network.target netfilter-persistent.service
 Type=forking
 EnvironmentFile=/etc/default/rtpengine
 PIDFile=/var/run/rtpengine.pid
-ExecStart=/usr/sbin/rtpengine --table=0 --interface=${AUDIO_SOCK} --listen-ng=${CONTROL_SOCK} --listen-cli=127.0.0.1:9900 --xmlrpc-format=2 --b2b-url=http://trunks.ivozprovider.local:8002/RPC2 -a 10800 -o 60 --tos=184 --pidfile=/var/run/rtpengine.pid --no-fallback --sip-source --recording-dir=${RECORDINGS_SPOOL} --recording-method=proc $EXTRA_OPTS
+ExecStart=/usr/sbin/rtpengine --table=0 --log-level=3 --interface=${AUDIO_SOCK} --listen-ng=${CONTROL_SOCK} --listen-cli=127.0.0.1:9900 --xmlrpc-format=2 --b2b-url=http://trunks.ivozprovider.local:8002/RPC2 -a 10800 -o 60 --tos=184 --pidfile=/var/run/rtpengine.pid --no-fallback --sip-source --recording-dir=${RECORDINGS_SPOOL} --recording-method=proc $EXTRA_OPTS
 ExecStartPre=-/sbin/iptables -D INPUT -p udp -j RTPENGINE --id 0
 ExecStartPost=/sbin/iptables -I INPUT -p udp -j RTPENGINE --id 0
 ExecStopPost=-/sbin/iptables -D INPUT -p udp -j RTPENGINE --id 0
