@@ -1,0 +1,16 @@
+#!/bin/bash
+
+package=rtpengine
+name=rtpengine
+version=9.5.1
+
+# make sure it's not running
+if [ -x /etc/init.d/rtpengine ] ; then
+	systemctl rtpengine stop || true
+fi
+
+dkms remove -m "$name" -v "$version" --all || true
+
+#DEBHELPER#
+
+:
