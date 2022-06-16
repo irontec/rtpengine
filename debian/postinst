@@ -4,7 +4,8 @@ package=rtpengine
 name=rtpengine
 version="9.5.1"
 arch=`dpkg --print-architecture`
-kernel=`uname -r`
+headers=`apt-cache depends linux-headers-amd64 | awk '/ linux/ {print $2}'`
+kernel=${headers:14}
 
 isadded=`dkms status -m "$name" -v "$version" -k "$kernel"`
 
