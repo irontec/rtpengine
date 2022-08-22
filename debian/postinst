@@ -6,6 +6,7 @@ version="9.5.1"
 arch=`dpkg --print-architecture`
 headers=`apt-cache depends linux-headers-amd64 | awk '/ linux/ {print $2}'`
 kernel=${headers:14}
+current=`uname -r`
 
 isadded=`dkms status -m "$name" -v "$version" -k "$kernel"`
 
@@ -15,6 +16,19 @@ fi
 
 if [ "$1" = 'configure' ] ; then
 	dkms build -m "$name" -v "$version" -k "$kernel" && dkms install -m "$name" -v "$version" -k "$kernel" || true
+fi
+
+if [ "$current" != "$kernel" ]; then
+
+    isadded=`dkms status -m "$name" -v "$version" -k "$current"`
+
+    if [ "x${isadded}" = "x" ] ; then
+        dkms add -m "$name" -v "$version" -k "$current"
+    fi
+
+    if [ "$1" = 'configure' ] ; then
+        dkms build -m "$name" -v "$version" -k "$current" && dkms install -m "$name" -v "$version" -k "$current" || true
+    fi
 fi
 
 grep xt_RTPENGINE /etc/modules &>/dev/null
