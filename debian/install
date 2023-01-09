@@ -6,5 +6,5 @@ iptables-extension/libxt_RTPENGINE.so   ${XTABLES_LIBDIR}
 perl/*                                  /usr/share/perl5/
 utils/rtpengine-ctl                     /usr/sbin/
 utils/rtpengine-ng-client               /usr/sbin/
-kernel-module/*                         /usr/src/rtpengine-9.5.1/
-debian/dkms.conf                        /usr/src/rtpengine-9.5.1/
+kernel-module/*                         /usr/src/rtpengine-10.5.3/
+debian/dkms.conf                        /usr/src/rtpengine-10.5.3/

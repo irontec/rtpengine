@@ -2,7 +2,7 @@
 
 package=rtpengine
 name=rtpengine
-version="9.5.1"
+version="10.5.3"
 arch=`dpkg --print-architecture`
 headers=`apt-cache depends linux-headers-amd64 | awk '/ linux/ {print $2}'`
 kernel=${headers:14}

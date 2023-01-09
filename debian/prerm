@@ -2,7 +2,7 @@
 
 package=rtpengine
 name=rtpengine
-version=9.5.1
+version=10.5.3
 
 # make sure it's not running
 if [ -x /etc/init.d/rtpengine ] ; then
