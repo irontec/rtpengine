@@ -8,3 +8,5 @@ utils/rtpengine-ctl                     /usr/sbin/
 utils/rtpengine-ng-client               /usr/sbin/
 kernel-module/*                         /usr/src/rtpengine-10.5.3/
 debian/dkms.conf                        /usr/src/rtpengine-10.5.3/
+etc/rtpengine.conf                      /etc/rtpengine/
+etc/rtpengine-recording.conf            /etc/rtpengine/
