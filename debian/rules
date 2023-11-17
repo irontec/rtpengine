@@ -1,41 +1,29 @@
 #!/usr/bin/make -f
-# -*- makefile -*-
 
-# Uncomment this to turn on verbose mode.
-# export DH_VERBOSE=1
+export DEB_BUILD_HARDENING=1
+export XTABLES_LIBDIR := $(shell pkg-config --variable=xtlibdir xtables)
 
-include /usr/share/dpkg/pkg-info.mk
+override_dh_auto_test:
 
-export DEB_VERSION_UPSTREAM
-export DEB_SOURCE
+override_dh_systemd_enable:
+	dh_systemd_enable --name rtpengine
+	dh_systemd_enable --name rtpengine-recording
 
-export XTABLES_DIR := $(shell pkg-config xtables --variable=xtlibdir || echo /lib/xtables)
+override_dh_systemd_start:
+	dh_systemd_start --name rtpengine --no-restart-on-upgrade
+	dh_systemd_start --name rtpengine-recording --no-restart-on-upgrade
 
-ifneq (,$(filter $(DEB_BUILD_PROFILES),pkg.ngcp-rtpengine.no-transcoding))
-export with_transcoding = no
-endif
-ifneq (,$(filter $(DEB_BUILD_PROFILES),pkg.ngcp-rtpengine.asan))
-export DO_ASAN_FLAGS = 1
-# this prevents dh from setting default (including -O2) which we don't want
-export DEB_CFLAGS_MAINT_SET =
-export DEB_LDFLAGS_MAINT_SET =
-endif
+override_dh_installinit:
+	dh_installinit --name rtpengine --noscripts --no-restart-on-upgrade --no-start
+	dh_installinit --name rtpengine-recording --noscripts --no-restart-on-upgrade --no-start
 
-export FIXTURES_PATH = /usr/share/rtpengine-perftest
+override_dh_auto_build:
+	${MAKE} -C iptables-extension
+	${MAKE} -C recording-daemon
+	${MAKE} -C daemon
+
+override_dh_install:
+	dh_install
 
 %:
-	dh $@
-
-execute_before_dh_auto_configure:
-	(cd debian && sh generate-systemd-templates.sh)
-
-execute_before_dh_auto_install-indep:
-	# markdown README
-	markdown README.md | gzip -9 > debian/README.html.gz
-	gzip -9 < README.md > debian/README.md.gz
-
-execute_after_dh_installsystemd:
-	dh_installsystemd -pngcp-rtpengine-recording-daemon --name=ngcp-rtpengine-recording-nfs-mount
-
-override_dh_dkms:
-	dh_dkms -p$(DEB_SOURCE)-kernel-dkms -V $(DEB_VERSION_UPSTREAM)
+	dh $@ --with systemd --with quilt
