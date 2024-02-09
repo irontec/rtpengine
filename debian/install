@@ -1,0 +1,12 @@
+#!/usr/bin/dh-exec
+
+daemon/rtpengine                        /usr/sbin/
+recording-daemon/rtpengine-recording    /usr/sbin/
+iptables-extension/libxt_RTPENGINE.so   ${XTABLES_LIBDIR}
+perl/*                                  /usr/share/perl5/
+utils/rtpengine-ctl                     /usr/sbin/
+utils/rtpengine-ng-client               /usr/sbin/
+kernel-module/*                         /usr/src/rtpengine-11.5.14/
+debian/dkms.conf                        /usr/src/rtpengine-11.5.14/
+etc/rtpengine.conf                      /etc/rtpengine/
+etc/rtpengine-recording.conf            /etc/rtpengine/

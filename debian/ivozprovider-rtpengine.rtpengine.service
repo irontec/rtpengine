@@ -1,0 +1,16 @@
+[Unit]
+Description=RTPEngine Mediaproxy
+After=network.target netfilter-persistent.service
+
+[Service]
+Type=forking
+PIDFile=/var/run/rtpengine.pid
+ExecStart=/usr/sbin/rtpengine --config-file /etc/rtpengine/rtpengine.conf
+ExecStartPre=-/usr/sbin/iptables -D INPUT -p udp -j RTPENGINE --id 0
+ExecStartPost=/usr/sbin/iptables -I INPUT -p udp -j RTPENGINE --id 0
+ExecStopPost=-/usr/sbin/iptables -D INPUT -p udp -j RTPENGINE --id 0
+ExecStopPost=/bin/bash -c "/bin/echo del 0 > /proc/rtpengine/control"
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

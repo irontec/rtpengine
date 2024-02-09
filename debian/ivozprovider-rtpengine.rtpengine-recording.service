@@ -1,0 +1,12 @@
+[Unit]
+Description=RTPEngine Recording daemon
+After=network.target
+
+[Service]
+Type=simple
+PIDFile=/var/run/rtpengine-recording.pid
+ExecStart=/usr/sbin/rtpengine-recording --config-file=/etc/rtpengine/rtpengine-recording.conf
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

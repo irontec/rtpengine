@@ -4,7 +4,11 @@ Upstream-Contact: Sipwise Development Team <support@sipwise.com>
 
 Files: *
 Copyright:
+<<<<<<< HEAD
  Copyright © 2007-2022 Sipwise GmbH, Austria
+=======
+ Copyright © 2007-2015 Sipwise GmbH, Austria
+>>>>>>> 0fa3278b (pkg: initial version for ivozprovider 3.0.0)
 License: GPL-3+ with OpenSSL exception
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
