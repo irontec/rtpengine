@@ -1,4 +1,10 @@
-ivozprovider-rtpengine (4.1~11.5.14) UNRELEASED; urgency=medium
+ivozprovider-rtpengine (4.2~11.5.14) UNRELEASED; urgency=medium
+
+  * Version bump to 4.2
+
+ -- Irontec IvozProvider Team <ivozprovider@irontec.com>  Thu, 12 Sep 2024 12:59:36 +0200
+
+ivozprovider-rtpengine (4.1~11.5.14) stable; urgency=medium
 
   * Version bump to 4.1
 
