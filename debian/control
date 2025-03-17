@@ -5,6 +5,7 @@ Maintainer: Irontec IvozProvider Team <ivozprovider@irontec.com>
 Build-Depends: debhelper (>= 9.2),
                quilt,
                dh-exec,
+               dh-sequence-dkms,
                gperf,
                pandoc,
                default-libmysqlclient-dev,
